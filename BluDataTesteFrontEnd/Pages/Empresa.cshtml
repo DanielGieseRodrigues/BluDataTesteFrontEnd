@@ -1,0 +1,133 @@
+﻿@page
+@model BluDataTesteFrontEnd.Pages.Shared.EmpresaModel
+@{
+    ViewData["Title"] = "Empresas";
+}
+<h3>@ViewData["Title"]</h3>
+
+<div class="row">
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Ações</th>
+                <th scope="col">CNPJ</th>
+                <th scope="col">Nome Fantasia</th>
+                <th scope="col">UF</th>
+            </tr>
+        </thead>
+        <tbody id="listaEmpresas">
+        </tbody>
+    </table>
+
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalInclusao">
+        Adicionar nova empresa
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="modalInclusao" tabindex="-1" role="dialog" aria-labelledby="modalInclusao" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ModalInclusaoTitle">Adicionar nova empresa</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">CNPJ</label>
+                            <input type="number" class="form-control" id="Cnpj" aria-describedby="CNPJHELP" placeholder="CNPJ">
+                            <small id="CNPJHELP" class="form-text text-muted">O CNPJ deve ser digitado sem pontuação..</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">Nome Fantasia</label>
+                            <input type="text" class="form-control" id="NomeFantasia" placeholder="Nome Fantasia">
+                        </div>
+                        <label for="UFSelect">UF</label>
+                        <select class="form-control" id="UFSelect">
+                            <option>RO</option>
+                            <option>AC</option>
+                            <option>AM</option>
+                            <option>RR</option>
+                            <option>PA</option>
+                            <option>AP</option>
+                            <option>TO</option>
+                            <option>MA</option>
+                            <option>PI</option>
+                            <option>CE</option>
+                            <option>RN</option>
+                            <option>PB</option>
+                            <option>PE</option>
+                            <option>AL</option>
+                            <option>SE</option>
+                            <option>BA</option>
+                            <option>MG</option>
+                            <option>ES</option>
+                            <option>RJ</option>
+                            <option>SP</option>
+                            <option>PR</option>
+                            <option>SC</option>
+                            <option>RS</option>
+                            <option>MS</option>
+                            <option>MT</option>
+                            <option>GO</option>
+                            <option>DF</option>
+                        </select>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" id="Salvar" class="btn btn-primary">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function AtualizarDados() {
+        $("#listaEmpresas").html("");
+        $.get("https://localhost:" + sessionStorage.getItem("PortaIIS") + "/Empresa", function (data) {
+            for (var i = 0; i < data.length; i++) {
+                $("#listaEmpresas").append("<tr> " +
+                    "<th scope='row' class='link'><a onclick='DeletarEmpresa(" + data[i].empresaID + ")'>Excluir</a></th > " +
+                    "<td>" + data[i].cnpj + "</td>" +
+                    "<td>" + data[i].nomeFantasia + "</td>" +
+                    "<td>" + data[i].uf + "</td></tr>");
+            }
+        });
+    }
+
+    function DeletarEmpresa(empresa) {
+        $.get("https://localhost:" + sessionStorage.getItem("PortaIIS") + "/Empresa/delete?id=" + empresa, function (data) {
+            if (data == "Empresa excluída com sucesso!") {
+                AtualizarDados();
+            }
+            alert(data);
+        });
+    }
+
+    AtualizarDados();
+
+    $("#Salvar").on('click', function () {
+        $.get("https://localhost:" + sessionStorage.getItem("PortaIIS") +
+            "/Empresa/Add?cnpj=" + $("#Cnpj").val() + "&nomeFantasia=" + $("#NomeFantasia").val() + "&uf=" + $("#UFSelect").val(),
+            function (data) {
+                if (data == "Empresa cadastrada com sucesso!") {
+                    $("#Cnpj").val("");
+                    $("#NomeFantasia").val("");
+                    $("#UFSelect").val(1);
+                    $("#modalInclusao").modal('hide')
+                    AtualizarDados();
+                }
+                else {
+                    alert(data);
+                }
+            });
+    });
+
+</script>
+

@@ -1,0 +1,229 @@
+﻿@page
+@model PrivacyModel
+@{
+    ViewData["Title"] = "Fornecedores";
+}
+<h3>@ViewData["Title"]</h3>
+
+<h6>Filtros de pesquisa </h6>
+<div class="row">
+    <div class="col-md-3">
+        <label for="Nome">Nome</label>
+        <input type="text" class="form-control" id="FiltroNome" placeholder="Nome">
+    </div>
+    <div class="col-md-3">
+        <label for="CPFCNPJ">CNPJ/CPF</label>
+        <input type="number" class="form-control" id="FiltroCnpjCpf" aria-describedby="CNPJHELP" placeholder="CNPJ/CPF">
+        <small id="CNPJHELP" class="form-text text-muted">O CNPJ/CPF deve ser digitado sem pontuação.</small>
+    </div>
+    <div class="col-md-3">
+        <label for="DataNascimento">Data de Cadastro</label>
+        <input type="text" class="form-control" id="FiltroDataCadastro" aria-describedby="DataNascimentoHELP" placeholder="00/00/0000">
+        <small id="DataNascimentoHELP" class="form-text text-muted">Escreva no padrão DD/MM/YYYY</small>
+    </div>
+    <div class="col-md-3">
+        <button type="button" id="Filtrar" style=" margin-top: 12%;" class="btn btn-dark">Pesquisar</button>
+    </div>
+</div>
+
+<h6>Listagem</h6>
+<div class="row">
+    <table id="TableFornecedores" class="table">
+        <thead>
+            <tr>
+                <th scope="col">Ações</th>
+                <th scope="col">Empresa</th>
+                <th scope="col">Nome</th>
+                <th scope="col">CNPJ/CPF</th>
+                <th scope="col">Telefone(s)</th>
+                <th scope="col">RG</th>
+                <th scope="col">Data de nascimento</th>
+                <th scope="col">Data de cadastro</th>
+            </tr>
+        </thead>
+        <tbody id="listaFornecedores">
+        </tbody>
+    </table>
+
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalInclusao">
+        Adicionar novo fornecedor
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="modalInclusao" tabindex="-1" role="dialog" aria-labelledby="modalInclusao" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ModalInclusaoTitle">Adicionar novo Fornecedor</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <label for="EmpresaSelect">Empresa</label>
+                        <select class="form-control" id="EmpresaSelect">
+                        </select>
+
+                        <div class="form-group">
+                            <label for="Nome">Nome</label>
+                            <input type="text" class="form-control" id="Nome" placeholder="Nome">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="CPFCNPJ">CNPJ/CPF</label>
+                            <input type="number" class="form-control" id="CnpjCpf" aria-describedby="CNPJHELP" placeholder="CNPJ/CPF">
+                            <small id="CNPJHELP" class="form-text text-muted">O CNPJ/CPF deve ser digitado sem pontuação.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="telefone">Telefone(s)</label>
+                            <input type="text" class="form-control" id="Telefones" aria-describedby="telefonehelp" placeholder="Telefone(s)">
+                            <small id="telefonehelp" class="form-text text-muted">No caso de múltiplos telefones, separe-os por uma vírgula (,)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="rg">RG</label>
+                            <input type="number" class="form-control" id="RG" placeholder="RG">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="DataNascimento">Data de Nascimento</label>
+                            <input type="text" class="form-control" id="DataNascimento" aria-describedby="DataNascimentoHELP" placeholder="00/00/0000">
+                            <small id="DataNascimentoHELP" class="form-text text-muted">Escreva no padrão DD/MM/YYYY</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" id="Salvar" class="btn btn-primary">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function CarregarSelectEmpresas() {
+        $.get("https://localhost:" + sessionStorage.getItem("PortaIIS") + "/Empresa", function (data) {
+            for (var i = 0; i < data.length; i++) {
+                $("#EmpresaSelect").append("<option value=" + data[i].empresaID + ">" + data[i].nomeFantasia + "</option>");
+            }
+        });
+    }
+
+
+
+    function PesquisarDadosEspecificos(Nome,CPFCNPJ,DataCadastro) {
+        $("#listaFornecedores").html("");
+        $.get("https://localhost:" + sessionStorage.getItem("PortaIIS") + "/Fornecedor/filtrar?" +
+            "nome=" + Nome + "&cpfcnpj=" + CPFCNPJ + "&datacadastro=" + DataCadastro.replaceAll("/",""), function (data) {
+            debugger;
+            for (var i = 0; i < data.length; i++) {
+
+                //Concatenar todos os telefones em uma só string para visualização
+                var telefones = "";
+                for (var p = 0; p < data[i].telefones.length; p++) {
+                    telefones += data[i].telefones[p].numeroTelefone + "/";
+                }
+
+                telefones = telefones.substring(0, telefones.length - 1)
+
+                $("#listaFornecedores").append("<tr> " +
+                    "<th scope='row' class='link'><a onclick='DeletarFornecedor(" + data[i].fornecedorID + ")'>Excluir</a></th > " +
+                    "<td>" + data[i].empresa.nomeFantasia + "</td>" +
+                    "<td>" + data[i].nome + "</td>" +
+                    "<td>" + data[i].cpfCnpj + "</td> " +
+                    "<td>" + telefones + "</td> " +
+                    "<td>" + data[i].rg + "</td> " +
+                    "<td>" + data[i].dataNascimento + "</td> " +
+                    "<td>" + data[i].dataDeCadastro + "</td> " +
+                    +"</tr > ");
+            }
+        });
+    }
+
+    function AtualizarDados() {
+        $("#listaFornecedores").html("");
+        $.get("https://localhost:" + sessionStorage.getItem("PortaIIS") + "/Fornecedor", function (data) {
+            debugger;
+            for (var i = 0; i < data.length; i++) {
+
+                //Concatenar todos os telefones em uma só string para visualização
+                var telefones = "";
+                for (var p = 0; p < data[i].telefones.length; p++) {
+                    telefones += data[i].telefones[p].numeroTelefone + "/";
+                }
+
+                telefones = telefones.substring(0, telefones.length - 1)
+
+                $("#listaFornecedores").append("<tr> " +
+                    "<th scope='row' class='link'><a onclick='DeletarFornecedor(" + data[i].fornecedorID + ")'>Excluir</a></th > " +
+                    "<td>" + data[i].empresa.nomeFantasia + "</td>" +
+                    "<td>" + data[i].nome + "</td>" +
+                    "<td>" + data[i].cpfCnpj + "</td> " +
+                    "<td>" + telefones + "</td> " +
+                    "<td>" + data[i].rg + "</td> " +
+                    "<td>" + data[i].dataNascimento + "</td> " +
+                    "<td>" + data[i].dataDeCadastro + "</td> " +
+                    +"</tr > ");
+            }
+        });
+    }
+
+    function DeletarFornecedor(fornecedor) {
+        $.get("https://localhost:" + sessionStorage.getItem("PortaIIS") + "/Fornecedor/delete?id=" + fornecedor, function (data) {
+            if (data == "Fornecedor excluído com sucesso!") {
+                AtualizarDados();
+            }
+            alert(data);
+        });
+    }
+
+    AtualizarDados();
+    CarregarSelectEmpresas();
+    Filtrar
+
+    $("#Filtrar").on('click', function () {
+        PesquisarDadosEspecificos($("#FiltroNome").val(), $("#FiltroCnpjCpf").val(), $("#FiltroDataCadastro").val());
+    });
+
+    $("#Salvar").on('click', function () {
+        $.get("https://localhost:" + sessionStorage.getItem("PortaIIS") +
+            "/Fornecedor/Add?empresaId=" + $("#EmpresaSelect").val() + "&nome=" + $("#Nome").val() + "&cpfcnpj=" + $("#CnpjCpf").val() +
+            "&telefones=" + $("#Telefones").val() + "&rg=" + $("#RG").val() + "&datanascimento=" + $("#DataNascimento").val().replaceAll("/", ""),
+            function (data) {
+                if (data == "Fornecedor inserido com sucesso!") {
+                    $("#Nome").val("");
+                    $("#CnpjCpf").val("");
+                    $("#Telefones").val("");
+                    $("#RG").val("");
+                    $("#DataNascimento").val("");
+
+                    $("#modalInclusao").modal('hide')
+                    AtualizarDados();
+                }
+                else {
+                    alert(data);
+                }
+            });
+    });
+
+    //JS PARA IMPEDIR PESSOA JURIDICA DE CADASTRAR RG E DATA DE NASCIMENTO
+    $("#CnpjCpf").on('change', function () {
+        if ($("#CnpjCpf").val().length > 11) {
+            $("#RG").val("");
+            $("#DataNascimento").val("");
+            $("#RG").prop("disabled", true);
+            $("#DataNascimento").prop("disabled", true);
+        }
+        else {
+            $("#RG").prop("disabled", false);
+            $("#DataNascimento").prop("disabled", false);
+        }
+    });
+
+</script>
+

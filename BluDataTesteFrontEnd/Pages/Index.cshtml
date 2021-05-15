@@ -1,0 +1,31 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+
+<div class="text-center">
+    <div id="divPortaiis" class="row">
+        <div class="input-group col-lg-6 col-md-6">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Porta do serviço backend</span>
+            </div>
+            <input id="NumeroPortaIIS" title="Número da porta levantada pelo IIS para o serviço de back end (WEB API C#)" type="number" class="form-control" placeholder="Username" aria-label="Porta iis" aria-describedby="basic-addon1">
+            <button id="Salvar" style="margin-left: 10px;" type="button" class="btn btn-primary">Salvar</button>
+        </div>
+    </div>
+</div>
+<script>
+
+    $("#Salvar").on('click', function () {
+        SalvarPortaIIS();
+    });
+
+    function SalvarPortaIIS() {
+        sessionStorage.setItem("PortaIIS", $("#NumeroPortaIIS").val());
+        alert("Serviço configurado! Use o restante do sistema :) ")
+        $("#divPortaiis").fadeOut("slow");
+    }
+
+</script>
